@@ -1,6 +1,7 @@
 -- file: MaddHub.lua
 -- last update: 09/20/2024
 -- author: maddworld
+loadstring(game:HttpGet('https://raw.githubusercontent.com/maddjester/MaddHub/main/Source/main.lua'))()
 
 
 local Svc = { Ws = game:GetService("Workspace"), Light = game:GetService("Lighting"), RepStor = game:GetService(
