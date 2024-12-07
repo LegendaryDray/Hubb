@@ -1,0 +1,692 @@
+-- file: MaddHub.lua
+-- last update: 09/20/2024
+-- author: maddjester
+-- Inject Command: loadstring(game:HttpGet('https://raw.githubusercontent.com/maddjester/MaddHub/main/Source/main.lua'))()
+
+
+local Svc = { Ws = game:GetService("Workspace"), Light = game:GetService("Lighting"), RepStor = game:GetService(
+"ReplicatedStorage"), Plrs = game:GetService("Players"), MrkPlc = game:GetService("MarketplaceService"), VirtUsr = game
+:GetService("VirtualUser"), UsrInp = game:GetService("UserInputService"), RunSvc = game:GetService("RunService"), Core =
+game:GetService("CoreGui"), Vim = game:GetService("VirtualInputManager"), Tween = game:GetService("TweenService") }
+
+local Lp = Svc.Plrs.LocalPlayer; local Chr = Lp.Character; local Hum = Chr:WaitForChild("Humanoid")
+local HumRP = Chr:WaitForChild("HumanoidRootPart")
+local function false_if_dev()
+    local devIds = { 4342810381, 4320929007 }
+    local result = true; for _, devId in pairs(devIds) do if Lp.UserId == devId then result = false end end; return
+    result
+end
+
+if not false_if_dev() then loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end
+local Icons = { Intro = "rbxassetid://14282025997", Character = "rbxassetid://7992557358", Controller =
+"rbxassetid://1557343445", Gear = "rbxassetid://11385265073", Players = "rbxassetid://11577689639", Money =
+"rbxassetid://7939405279", Boss = "rbxassetid://10653372143", Pet = "rbxassetid://13001190533", Egg =
+"rbxassetid://7939410236", Dojo = "rbxassetid://11183649951", Runner = "rbxassetid://9525535512", Inventory =
+"rbxassetid://12166530009", Keyboard = "rbxassetid://11738672671", Teleport = "rbxassetid://6723742952", Quest =
+"rbxassetid://12905962634", Server = "rbxassetid://9692125126", Upgrade = "rbxassetid://12338897538", Arm =
+"rbxassetid://13769779209" }
+
+local CustomTheme = { Main = Color3.fromRGB(0, 0, 0), Second = Color3.fromRGB(25, 25, 25), Stroke = Color3.fromRGB(60,
+    140, 255), Divider = Color3.fromRGB(0, 150, 225), Text = Color3.fromRGB(255, 255, 255), TextDark = Color3.fromRGB(60,
+    140, 255) }
+
+local syn = getgenv().syn; getgenv().syn = false; local Lib = { Orion = loadstring(game:HttpGet(
+'https://raw.githubusercontent.com/shlexware/Orion/main/source'))(), Esp = loadstring(game:HttpGet(
+'https://sirius.menu/rayfield')) }
+
+getgenv().syn = syn; local Gui = { Settings = { Name = Svc.MrkPlc:GetProductInfo(game.PlaceId).Name .. " | Quantumhub", HidePremium = false, SaveConfig = false_if_dev(), IntroEnabled = false_if_dev(), IntroText = "welcome to Quantum Hub", ConfigFolder = "quatumhub_" .. Lp.Name } }
+
+local Window = Lib.Orion:MakeWindow(Gui.Settings)
+Lib.Orion.Themes["Custom"], Lib.Orion.SelectedTheme = CustomTheme, "Custom"
+
+local function alert(name, msg, dur)
+    Lib.Orion:MakeNotification({
+        Name = name,
+        Content = msg,
+        Image = "rbxassetid://7634887649",
+        Time = dur
+    })
+end
+
+local function sendMessage(Message, Recipients)
+    local r = Svc.RepStor.DefaultChatSystemChatEvents.SayMessageRequest
+    if r then
+        local args = {
+            Message,
+            Recipients,
+        }
+        r:FireServer(unpack(args))
+    end
+end
+
+local function serverHop()
+    local module = loadstring(game:HttpGet('https://raw.githubusercontent.com/maddjester/MaddHub/refs/heads/main/Source/Extras/serverhop.lua'))()
+    if game and module then
+        task.spawn(function()
+            module:Teleport(game.PlaceId)
+        end)
+    end
+end
+
+local function clickTp(Bind)
+    local Mouse = Lp:GetMouse()
+    Mouse.Button1Down:Connect(function()
+        if not game:GetService("UserInputService"):IsKeyDown(Bind) then return end
+        if Mouse.Target then
+            Chr:MoveTo(Mouse.Hit.p)
+        end
+    end)
+end
+
+local function noClip()
+    task.spawn(function()
+        while task.wait() do
+            repeat task.wait() until Chr
+            if getgenv().NOCLIP then
+                for _, v in pairs(Chr:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                    end
+                end
+            else
+                for _, v in pairs(Chr:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                    end
+                end
+                break
+            end
+        end
+    end)
+end
+
+local function getPlayerNames()
+    local results = {}
+    for _, v in pairs(Svc.Plrs:GetPlayers()) do
+        if v.Name ~= Lp.Name then
+            table.insert(results, v.Name)
+        end
+    end
+    return results
+end
+
+local function sort_alphabetical(a, b)
+    return a:lower() < b:lower()
+end
+
+local function addBinds(Binds, tabName)
+    for _, v in next, Binds do
+        tabName:AddBind({
+            Name = v.Name,
+            Default = v.Default,
+            Hold = v.Hold,
+            Callback = v.Callback
+        })
+    end
+end
+
+local function expandHb(char)
+    if char then
+        local part = char:FindFirstChild("HumanoidRootPart")
+        if part then
+            pcall(function()
+                part.Size = Vector3.new(getgenv().HitSize, getgenv().HitSize, getgenv().HitSize)
+                part.Transparency = getgenv().HitTrans
+                part.BrickColor = BrickColor.new(getgenv().HitColor)
+                part.Material = "Neon"
+                part.CanCollide = false
+            end)
+        end
+    end
+end
+
+local function expandHbs()
+    for _, v in ipairs(Svc.Plrs:GetPlayers()) do
+        if v.Character and v.Name ~= Lp.Name then
+            expandHb(v.Character)
+        end
+    end
+    Svc.Plrs.PlayerAdded:Connect(function(plr)
+        if getgenv().EXPANDHB and plr.Name ~= Lp.Name then
+            plr.CharacterAdded:Connect(function(chr)
+                expandHb(chr)
+            end)
+        end
+    end)
+end
+
+local function autoTp()
+    local plr = Svc.Ws:FindFirstChild(getgenv().PLAYER)
+    if plr then
+        local hrp = plr:FindFirstChild("HumanoidRootPart")
+        task.spawn(function()
+            while task.wait() do
+                repeat task.wait(0.5) until hrp
+                if not getgenv().TP then break end
+                if Chr and hrp then
+                    local r = math.random(-2, 2)
+                    Chr:PivotTo(hrp:GetPivot() + Vector3.new(r, 0, r))
+                end
+            end
+        end)
+    end
+end
+
+local function diedTP()
+    local pos = CFrame.new()
+    local stationaryrespawn = false; local needsrespawning = false; local haspos = false
+
+    Svc.RunSvc.Stepped:Connect(function()
+        if getgenv().DIEDTP then
+            if stationaryrespawn == true and Hum.Health == 0 then
+                if haspos == false then
+                    pos = HumRP.CFrame
+                    haspos = true
+                end
+                needsrespawning = true
+            end
+            if needsrespawning == true then
+                HumRP.CFrame = pos
+            end
+        end
+    end)
+
+    Lp.CharacterAdded:Connect(function()
+        if getgenv().DIEDTP then
+            task.wait(0.6)
+            needsrespawning = false
+            haspos = false
+        end
+    end)
+end
+
+local function fullBright()
+    loadstring('https://raw.githubusercontent.com/maddjester/MaddHub/refs/heads/main/Source/Extras/fullbright.lua')()
+end
+
+local function getState(b)
+    local r
+    if b then
+        r = "Activated."
+    else
+        r = "Deactivated."
+    end
+    return r
+end
+
+if not assert(fireproximityprompt, "Your exploit does not support fireproximityprompt.") then
+    local function fireproximityprompt(Obj, Amount, Skip)
+        if Obj.ClassName == "ProximityPrompt" then
+            Amount = Amount or 1
+            local PromptTime = Obj.HoldDuration
+            if Skip then
+                Obj.HoldDuration = 0
+            end
+            for i = 1, Amount do
+                Obj:InputHoldBegin()
+                if not Skip then
+                    task.wait(Obj.HoldDuration)
+                end
+                Obj:InputHoldEnd()
+            end
+            Obj.HoldDuration = PromptTime
+        else
+            error("userdata<ProximityPrompt> expected")
+        end
+    end
+end
+
+local function fireRedeem(Event, Codes)
+    for _, v in pairs(Codes) do
+        pcall(function()
+            Event:FireServer(v)
+            Event:InvokeServer(v)
+        end)
+        task.wait(3)
+    end
+    print("Codes Redeemed:", unpack(Codes))
+end
+
+local function invisMe()
+    for _, v in pairs(Chr:GetChildren()) do
+        if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("Hat") then
+            if getgenv().INVIS then
+                v:Destroy()
+            end
+        end
+        if v:IsA("Part") or v:IsA("MeshPart") then
+            if getgenv().INVIS then
+                v.Transparency = 1
+                if v.Name == "Head" then
+                    if v:FindFirstChild("face") then
+                        v.face:Destroy()
+                    end
+                end
+            else
+                if v.Transparency == 1 and v.Name ~= HumRP.Name then
+                    v.Transparency = 0
+                end
+            end
+        end
+    end
+end
+
+local function loopInvis()
+    task.spawn(function()
+        while task.wait() do
+            if not getgenv().LOOPINVIS then break end
+            invisMe()
+        end
+    end)
+end
+
+local function pressKey(key)
+    Svc.Vim:SendKeyEvent(true, key, false, game)
+end
+
+local function releaseKey(key)
+    Svc.Vim:SendKeyEvent(false, key, false, game)
+end
+
+local function loopSpeed()
+    if Hum.WalkSpeed < getgenv().SPEED then
+        Hum.WalkSpeed = getgenv().SPEED
+    end
+end
+
+local function randString()
+    local n = {}
+    for i = 1, 2 do
+        local randuppercase = string.char(math.random(65, 65 + 25))
+        local randlowercase = string.char(math.random(65, 65 + 25)):lower()
+        table.insert(n, randuppercase)
+        table.insert(n, randlowercase)
+    end
+    return table.concat(n)
+end
+
+local function walkToPart(part, speaker)
+    if Lp.Character:FindFirstChildOfClass('Humanoid') and Lp.Character:FindFirstChildOfClass('Humanoid').SeatPart then
+        speaker.Character:FindFirstChildOfClass('Humanoid').Sit = false
+        task.wait(.1)
+    end
+    Lp.Character:FindFirstChildOfClass('Humanoid').WalkToPoint = part.Position
+end
+
+local function walkToPos(pos)
+	if Lp.Character:FindFirstChildOfClass('Humanoid') and Lp.Character:FindFirstChildOfClass('Humanoid').SeatPart then
+		Lp.Character:FindFirstChildOfClass('Humanoid').Sit = false
+		task.wait(.1)
+	end
+	Lp.Character:FindFirstChildOfClass('Humanoid').WalkToPoint = pos
+end
+
+
+getgenv().makeHub = loadstring(game:HttpGet('https://raw.githubusercontent.com/maddjester/MaddHub/main/Source/main.lua'))
+
+repeat task.wait(1) until Svc.Ws.Gravity
+local gravReset, swimbeat
+local oldgrav = Svc.Ws.Gravity
+getgenv().SWIMMING = false
+
+local function swim()
+    if not getgenv().SWIMMING and Chr and Hum then
+        oldgrav = Svc.Ws.Gravity
+        Svc.Ws.Gravity = 0
+        local swimDied = function()
+            Svc.Ws.Gravity = oldgrav
+            getgenv().SWIMMING = false
+        end
+        gravReset = Hum.Died:Connect(swimDied)
+        local enums = Enum.HumanoidStateType:GetEnumItems()
+        table.remove(enums, table.find(enums, Enum.HumanoidStateType.None))
+        for i, v in pairs(enums) do
+            Hum:SetStateEnabled(v, false)
+        end
+        Hum:ChangeState(Enum.HumanoidStateType.Swimming)
+        swimbeat = Svc.RunSvc.Heartbeat:Connect(function()
+            pcall(function()
+                HumRP.Velocity = ((Hum.MoveDirection ~= Vector3.new() or Svc.UsrInp:IsKeyDown(Enum.KeyCode.Space)) and HumRP.Velocity or Vector3.new())
+            end)
+        end)
+        getgenv().SWIMMING = true
+    end
+end
+
+local function unswim()
+    if Chr and Hum then
+        Svc.Ws.Gravity = oldgrav
+        getgenv().SWIMMING = false
+        if gravReset then
+            gravReset:Disconnect()
+        end
+        if swimbeat ~= nil then
+            swimbeat:Disconnect()
+            swimbeat = nil
+        end
+        local enums = Enum.HumanoidStateType:GetEnumItems()
+        table.remove(enums, table.find(enums, Enum.HumanoidStateType.None))
+        for i, v in pairs(enums) do
+            Hum:SetStateEnabled(v, true)
+        end
+    end
+end
+
+local function getRoot(char)
+    local rootPart = char:FindFirstChild('HumanoidRootPart') or char:FindFirstChild('Torso') or
+    char:FindFirstChild('UpperTorso')
+    return rootPart
+end
+
+local function breakVelocity()
+    local BeenASecond, V3 = false, Vector3.new(0, 0, 0)
+    delay(1, function()
+        BeenASecond = true
+    end)
+    while not BeenASecond do
+        for _, v in ipairs(Chr:GetDescendants()) do
+            if v.IsA(v, "BasePart") then
+                v.Velocity, v.RotVelocity = V3, V3
+            end
+        end
+        task.wait()
+    end
+end
+
+local function tweenTo(v3, tweenSpeed, speaker)
+    local char = speaker.Character
+    if char and getRoot(char) then
+        local Tween = Svc.Tween:Create(getRoot(speaker.Character), TweenInfo.new(tweenSpeed, Enum.EasingStyle.Linear),
+            { CFrame = CFrame.new(v3) }):Play()
+    end
+end
+
+local function clickAbs(Button)
+    mousemoveabs(Button.AbsolutePosition.X + Button.AbsoluteSize.X / 2, Button.AbsolutePosition.Y + 50)
+    Svc.Vim:SendMouseButtonEvent(Button.AbsolutePosition.X + Button.AbsoluteSize.X / 2, Button.AbsolutePosition.Y + 50, 0,
+        true, Button, 1)
+    task.wait()
+    Svc.Vim:SendMouseButtonEvent(Button.AbsolutePosition.X + Button.AbsoluteSize.X / 2, Button.AbsolutePosition.Y + 50, 0,
+        false, Button, 1)
+end
+
+local Binds, Codes = {}, {}
+
+Binds[1] = {
+    Name = "No Clipping",
+    Default = Enum.KeyCode.F1,
+    Hold = false,
+    Callback = function()
+        getgenv().NOCLIP = not getgenv().NOCLIP
+        alert(Binds[1].Name, getState(getgenv().NOCLIP))
+        noClip()
+    end
+}
+
+Binds[2] = {
+    Name = "Died Teleport",
+    Default = Enum.KeyCode.F2,
+    Hold = false,
+    Callback = function()
+        getgenv().DIEDTP = not getgenv().DIEDTP
+        alert(Binds[2].Name, getState(getgenv().DIEDTP))
+        diedTP()
+    end
+}
+
+Binds[3] = {
+    Name = "Fullbright",
+    Default = Enum.KeyCode.F3,
+    Hold = false,
+    Callback = function()
+        getgenv().FullBrightEnabled = not getgenv().FullBrightEnabled
+        alert(Binds[3].Name, getState(getgenv().DIEDTP))
+        fullBright()
+    end
+}
+
+Binds[4] = {
+    Name = "Server Hop",
+    Default = Enum.KeyCode.F4,
+    Hold = false,
+    Callback = function()
+        alert(Svc.MrkPlc:GetProductInfo(game.PlaceId).Name, "Hopping to a new server...")
+        serverHop()
+    end
+}
+
+Binds[5] = {
+    Name = "Reload GUI",
+    Default = Enum.KeyCode.F5,
+    Hold = false,
+    Callback = function()
+        getgenv().makeHub()
+    end
+}
+
+Binds[8] = {
+    Name = "Destroy MaddHub",
+    Default = Enum.KeyCode.F8,
+    Hold = false,
+    Callback = function()
+        if Lib.Esp then
+            Lib.Esp:Unload()
+        end
+        Lib.Orion:Destroy()
+    end
+}
+
+Binds[9] = {
+    Name = "Key bind + Click to Teleport",
+    Default = Enum.KeyCode.LeftControl,
+    Hold = false,
+    Callback = function()
+        clickTp(Enum.KeyCode.LeftControl)
+    end
+}
+
+
+local CharTab = Window:MakeTab({
+    Name = "Character",
+    Icon = Icons.Character,
+    PremiumOnly = false
+})
+
+local ViewSect = CharTab:AddSection({
+    Name = "Camera Settings"
+})
+
+ViewSect:AddSlider({
+    Name = "Field Of View",
+    Min = 60,
+    Max = 120,
+    Default = Svc.Ws.Camera.FieldOfView or 60,
+    Save = true,
+    Flag = "FOV",
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 1,
+    ValueName = "",
+    Callback = function(Value)
+        Svc.Ws.Camera.FieldOfView = Value
+    end
+})
+
+ViewSect:AddToggle({
+    Name = "Third Person Camera Mode",
+    Default = Lp.CameraMode,
+    Save = true,
+    Flag = "CAM",
+    Callback = function(Value)
+        if Value then
+            Lp.CameraMode = "Classic"
+            Lp.CameraMinZoomDistance = 0
+            Lp.CameraMaxZoomDistance = 1000
+        else
+            Lp.CameraMode = "LockFirstPerson"
+        end
+    end
+})
+
+local ChrSect = CharTab:AddSection({
+    Name = "Character Properties"
+})
+
+ChrSect:AddButton({
+    Name = "Randomize Display Name",
+    Callback = function()
+        local names = { "Bob", "Kevin", "Ron", "Alice", "Eve", "Charlie", "David", "Becky", "Sue", "Jeremy", "Chris",
+            "Natalia" }
+        local name = names[math.random(#names)] ..
+        randString() .. "_" .. tostring(math.floor(os.time() / math.random(10, 400)))
+        game:GetService("Players").LocalPlayer.DisplayName = name
+        game:GetService("Players").LocalPlayer:WaitForChild("Character"):FindFirstChild("Humanoid").DisplayName = name
+    end
+})
+
+ChrSect:AddLabel("Movement")
+
+repeat task.wait(1) until Hum.WalkSpeed
+ChrSect:AddSlider({
+    Name = "Walk Speed",
+    Min = 1,
+    Max = 500,
+    Default = Hum.WalkSpeed,
+    Save = true,
+    Flag = "WALK",
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 1,
+    ValueName = "",
+    Callback = function(Value)
+        if Value ~= Hum.WalkSpeed then
+            getgenv().SPEED = Value
+            Hum:GetPropertyChangedSignal("WalkSpeed"):Connect(loopSpeed)
+        end
+    end
+})
+
+ChrSect:AddSlider({
+    Name = "Jump Power",
+    Min = 1,
+    Max = 500,
+    Default = Hum.JumpPower or 50,
+    Save = true,
+    Flag = "JUMP",
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 1,
+    ValueName = "",
+    Callback = function(Value)
+        local loopJump = task.spawn(function()
+            while task.wait() do
+                if Hum.JumpPower ~= getgenv().POWER then
+                    Hum.JumpPower = getgenv().POWER
+                end
+            end
+        end)
+        getgenv().POWER = Value
+    end
+})
+
+ChrSect:AddLabel("Visibility")
+
+local invisToggle = ChrSect:AddToggle({
+    Name = "Invisibility",
+    Default = false,
+    Save = true,
+    Flag = "INVIS",
+    Callback = function(Value)
+        getgenv().INVIS = Value
+        invisMe()
+    end
+})
+
+local loopInvisToggle = ChrSect:AddToggle({
+    Name = "Loop Invisibility",
+    Default = false,
+    Save = true,
+    Flag = "LOOPINVIS",
+    Callback = function(Value)
+        getgenv().LOOPINVIS = Value
+        if Value then
+            if Chr then
+                loopInvis()
+            end
+        end
+    end
+})
+
+local PlayersTab = Window:MakeTab({
+    Name = "Players",
+    Icon = Icons.Players,
+    PremiumOnly = false
+})
+
+local TeleportSect = PlayersTab:AddSection({
+    Name = "Teleports"
+})
+
+TeleportSect:AddDropdown({
+    Name = "Teleport to Player",
+    Default = Lp.Name,
+    Options = getPlayerNames(),
+    Callback = function(Value)
+        local looping = getgenv().TP
+        getgenv().LoopToggle:Set(false)
+        getgenv().PLAYER = Value
+        getgenv().LoopToggle:Set(looping)
+        local tarChr = Svc.Ws:FindFirstChild(getgenv().PLAYER)
+        if Chr and tarChr then
+            HumRP:PivotTo(tarChr:GetPivot() + Vector3.new(0, 5, -3))
+        end
+    end
+})
+
+getgenv().LoopToggle = TeleportSect:AddToggle({
+    Name = "Loop Teleport to Player",
+    Default = false,
+    Save = true,
+    Flag = "TP",
+    Callback = function(Value)
+        getgenv().TP = Value
+        if Value then
+            if Chr then
+                autoTp()
+            end
+        end
+    end
+})
+
+local ESPSect = PlayersTab:AddSection({
+    Name = "ESP/Chams/Nametags/Healthbars"
+})
+
+ESPSect:AddButton({
+    Name = "Sense ESP",
+    Callback = function()
+        Lib.Esp()
+    end
+})
+
+local HitSect = PlayersTab:AddSection({
+    Name = "Hitbox Expander"
+})
+
+HitSect:AddButton({
+    Name = "Expand Hitboxes",
+    Callback = function()
+        getgenv().EXPANDHB = not getgenv().EXPANDHB
+        expandHbs()
+    end
+})
+
+HitSect:AddSlider({
+    Name = "Size",
+    Min = 0,
+    Max = 500,
+    Default = 1,
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 1,
+    ValueName = "Studs",
+    Callback = function(Value)
+        getgenv().HitSize = Value
+        if getgenv().EXPANDHB then
+    
