@@ -1,7 +1,7 @@
 -- file: MaddHub.lua
 -- last update: 09/20/2024
--- author: maddworld
-loadstring(game:HttpGet('https://raw.githubusercontent.com/maddjester/MaddHub/main/Source/main.lua'))()
+-- author: maddfrazer
+-- Inject Command: loadstring(game:HttpGet('https://pastebin.com/raw/u3Ltxp9Y'))()
 
 
 local Svc = { Ws = game:GetService("Workspace"), Light = game:GetService("Lighting"), RepStor = game:GetService(
@@ -12,7 +12,7 @@ game:GetService("CoreGui"), Vim = game:GetService("VirtualInputManager"), Tween 
 local Lp = Svc.Plrs.LocalPlayer; local Chr = Lp.Character; local Hum = Chr:WaitForChild("Humanoid")
 local HumRP = Chr:WaitForChild("HumanoidRootPart")
 local function false_if_dev()
-    local devIds = { 4342810381, 4320929007 }
+    local devIds = { 7647674137, }
     local result = true; for _, devId in pairs(devIds) do if Lp.UserId == devId then result = false end end; return
     result
 end
@@ -34,7 +34,7 @@ local syn = getgenv().syn; getgenv().syn = false; local Lib = { Orion = loadstri
 'https://raw.githubusercontent.com/shlexware/Orion/main/source'))(), Esp = loadstring(game:HttpGet(
 'https://sirius.menu/rayfield')) }
 
-getgenv().syn = syn; local Gui = { Settings = { Name = Svc.MrkPlc:GetProductInfo(game.PlaceId).Name .. " | MaddHub", HidePremium = false, SaveConfig = false_if_dev(), IntroEnabled = false_if_dev(), IntroText = "welcome to MaddHub", ConfigFolder = "quatumhub_" .. Lp.Name } }
+getgenv().syn = syn; local Gui = { Settings = { Name = Svc.MrkPlc:GetProductInfo(game.PlaceId).Name .. " | MaddHub", HidePremium = false, SaveConfig = false_if_dev(), IntroEnabled = false_if_dev(), IntroText = "maddhub.webador.com", ConfigFolder = "MaddHub_" .. Lp.Name } }
 
 local Window = Lib.Orion:MakeWindow(Gui.Settings)
 Lib.Orion.Themes["Custom"], Lib.Orion.SelectedTheme = CustomTheme, "Custom"
